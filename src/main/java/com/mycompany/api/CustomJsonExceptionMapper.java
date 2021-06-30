@@ -1,4 +1,4 @@
-package com.mycompany.json;
+package com.mycompany.api;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

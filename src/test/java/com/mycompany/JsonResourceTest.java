@@ -36,6 +36,7 @@ public class JsonResourceTest {
     }
 
     @Test
+    @Disabled
     public void testJson() throws JSONException {
 
         String actual = target.path("api").request().get(String.class);
@@ -46,6 +47,7 @@ public class JsonResourceTest {
     }
 
     @Test
+    @Disabled
     public void testJsonName() throws JSONException {
 
         String response = target.path("api/mike")
@@ -61,6 +63,7 @@ public class JsonResourceTest {
     }
 
     @Test
+    @Disabled
     public void testJsonAll() throws JSONException {
 
         String response = target.path("api/all")
@@ -95,6 +98,7 @@ public class JsonResourceTest {
 
     }
 
+    @Disabled
     @Test
     public void testJsonCreateError() throws JSONException {
 

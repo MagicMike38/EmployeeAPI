@@ -1,8 +1,8 @@
 package com.mycompany;
 
-import com.mycompany.json.CustomJacksonMapperProvider;
-import com.mycompany.json.CustomJsonExceptionMapper;
-import com.mycompany.json.JsonResource;
+import com.mycompany.api.CustomJacksonMapperProvider;
+import com.mycompany.api.CustomJsonExceptionMapper;
+import com.mycompany.api.JsonResource;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
