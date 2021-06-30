@@ -3,12 +3,9 @@ package com.mycompany.dbaccess;
 import com.mongodb.*;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-import com.mycompany.api.Employee;
+import com.mycompany.dao.Employee;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 public class EmployeeDBAccess {
 

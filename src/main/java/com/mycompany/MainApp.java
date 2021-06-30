@@ -2,7 +2,7 @@ package com.mycompany;
 
 import com.mycompany.api.CustomJacksonMapperProvider;
 import com.mycompany.api.CustomJsonExceptionMapper;
-import com.mycompany.api.JsonResource;
+import com.mycompany.api.APIHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -20,7 +20,7 @@ public class MainApp {
     public static HttpServer startHttpServer() {
 
         final ResourceConfig config = new ResourceConfig();
-        config.register(JsonResource.class);
+        config.register(APIHandler.class);
         config.register(CustomJacksonMapperProvider.class);
         config.register(CustomJsonExceptionMapper.class);
         // JacksonFeature for JAXB/POJO, for pure JSON, no need this JacksonFeature

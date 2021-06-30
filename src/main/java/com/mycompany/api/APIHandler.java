@@ -2,16 +2,14 @@ package com.mycompany.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mycompany.dao.Employee;
 import com.mycompany.services.EmployeeService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Path("/api")
-public class JsonResource {
+public class APIHandler {
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private EmployeeService employeeService = new EmployeeService();

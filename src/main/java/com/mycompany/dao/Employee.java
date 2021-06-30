@@ -1,4 +1,4 @@
-package com.mycompany.api;
+package com.mycompany.dao;
 
 public class Employee {
 
@@ -6,9 +6,7 @@ public class Employee {
     private String name;
     private String designation;
 
-    public Employee(){
-
-    }
+    public Employee(){}
 
     public Employee(int id, String name, String designation) {
         this.id = id;

@@ -18,7 +18,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class JsonResourceTest {
+public class APIHandlerTest {
 
     private static HttpServer server;
     private static WebTarget target;

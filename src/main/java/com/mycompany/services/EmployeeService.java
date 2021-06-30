@@ -1,6 +1,6 @@
 package com.mycompany.services;
 
-import com.mycompany.api.Employee;
+import com.mycompany.dao.Employee;
 import com.mycompany.dbaccess.EmployeeDBAccess;
 
 public class EmployeeService {
