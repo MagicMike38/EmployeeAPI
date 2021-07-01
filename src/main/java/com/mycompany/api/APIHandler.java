@@ -3,6 +3,8 @@ package com.mycompany.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mycompany.model.Employee;
+import com.mycompany.services.AbstractEmployeeService;
+import com.mycompany.services.AbstractKakfaService;
 import com.mycompany.services.EmployeeKafkaService;
 import com.mycompany.services.EmployeeService;
 import jakarta.ws.rs.*;
@@ -15,11 +17,11 @@ import java.io.IOException;
 public class APIHandler {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final EmployeeService employeeService;
-    private final EmployeeKafkaService employeeKafkaService;
+    private final AbstractEmployeeService employeeService;
+    private final AbstractKakfaService<Employee> employeeKafkaService;
 
-    private final String kakfaProdProp = "kafka-producer.properties";
-    private final String kakfaConsProp = "kafka-consumer.properties";
+    String kakfaProdProp = "kafka-producer.properties";
+    String kakfaConsProp = "kafka-consumer.properties";
 
     public APIHandler() throws IOException {
         employeeService = new EmployeeService();

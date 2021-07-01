@@ -19,11 +19,11 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 
-public class EmployeeKafkaService {
+public class EmployeeKafkaService implements AbstractKakfaService<Employee>{
 
-    private EmployeeService employeeService;
-    private Properties producerProps;
-    private Properties consumerProps;
+    private final EmployeeService employeeService;
+    private final Properties producerProps;
+    private final Properties consumerProps;
 
     public EmployeeKafkaService(String producerConfig, String consumerConfig) throws IOException {
         FileReader producerConfigFile = new FileReader("src/main/resources/"+producerConfig);
