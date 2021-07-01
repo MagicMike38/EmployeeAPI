@@ -3,16 +3,23 @@ package com.mycompany.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mycompany.dao.Employee;
+import com.mycompany.services.EmployeeKafkaService;
 import com.mycompany.services.EmployeeService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 
 @Path("/api")
 public class APIHandler {
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private EmployeeService employeeService = new EmployeeService();
+    private EmployeeKafkaService employeeKafkaService = new EmployeeKafkaService();
+
+    public APIHandler() {
+    }
 
     @Path("/employee")
     @POST
@@ -94,4 +101,42 @@ public class APIHandler {
         return Response.status(Response.Status.OK).entity(json).build();
     }
 
+    @Path("/publish")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response publish(Employee employee) {
+        ObjectNode json = mapper.createObjectNode();
+        try{
+            employeeKafkaService.publish(employee);
+            json.put("Status", "Successful");
+        }
+        catch (Exception ex){
+            System.out.println("Exception Occurred : " + ex.getMessage());
+            json.put("Status", "Failure");
+            json.put("Reason", ex.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+        }
+        return Response.status(Response.Status.CREATED).entity(json).build();
+    }
+
+    @Path("/consume")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response consume(Employee employee) {
+        ObjectNode json = mapper.createObjectNode();
+        try{
+            employeeKafkaService.consume(employee);
+            json.put("Status", "Successful");
+        }
+        catch (Exception ex){
+            System.out.println("Exception Occurred : "+ex.getMessage());
+            ex.printStackTrace();
+            json.put("Status", "Failure");
+            json.put("Reason", ex.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+        }
+        return Response.status(Response.Status.CREATED).entity(json).build();
+    }
 }
