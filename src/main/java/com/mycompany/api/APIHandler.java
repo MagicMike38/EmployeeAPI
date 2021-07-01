@@ -132,7 +132,6 @@ public class APIHandler {
         }
         catch (Exception ex){
             System.out.println("Exception Occurred : "+ex.getMessage());
-            ex.printStackTrace();
             json.put("Status", "Failure");
             json.put("Reason", ex.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();

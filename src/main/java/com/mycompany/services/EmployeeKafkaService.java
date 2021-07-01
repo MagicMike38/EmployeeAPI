@@ -1,6 +1,7 @@
 package com.mycompany.services;
 
 import com.mycompany.dao.Employee;
+import com.mycompany.serializers.EmployeeSerializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -33,12 +34,12 @@ public class EmployeeKafkaService {
         props.put(ProducerConfig.LINGER_MS_CONFIG, 1);
 
         props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, EmployeeSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EmployeeSerializer.class.getName());
 
-        Producer<String, String> producer = new KafkaProducer<>(props);
+        Producer<Integer, Employee> producer = new KafkaProducer<>(props);
 
-        producer.send(new ProducerRecord<>("TestTopic", "testkey", "testvalue"));
+        producer.send(new ProducerRecord<>("TestTopic", employee.getId(), employee));
         System.out.println("Publishing done...");
         producer.close();
 
@@ -57,12 +58,12 @@ public class EmployeeKafkaService {
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG,grp_id);
 
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+        KafkaConsumer<Integer, Employee> consumer = new KafkaConsumer<>(properties);
         consumer.subscribe(Collections.singletonList(topic));
 
-        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+        ConsumerRecords<Integer, Employee> records = consumer.poll(Duration.ofMillis(100));
         System.out.println("Records: "+records);
-        for (ConsumerRecord<String, String> record : records) {
+        for (ConsumerRecord<Integer, Employee> record : records) {
             System.out.println("Key: " + record.key() + ", Value:" + record.value());
             System.out.println("Partition:" + record.partition() + ",Offset:" + record.offset());
         }
