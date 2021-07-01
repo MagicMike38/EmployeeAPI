@@ -1,31 +1,32 @@
-package com.mycompany.dbaccess;
+package com.mycompany.dao;
 
-import com.mongodb.*;
+import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import com.mycompany.dao.Employee;
+import com.mycompany.model.Employee;
 import org.bson.Document;
 
-public class EmployeeDBAccess {
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Properties;
 
-    private MongoClient client;
-    private MongoCollection mongoCollection;
+public class EmployeeDAO {
 
-    public EmployeeDBAccess(String propFileName){
-        //Read from file
-        String dbType = "mongo";
-        String db = "details";
-        String hostname = "127.0.0.1";
-        int port = 27017;
+    private final MongoClient client;
+    private final MongoCollection mongoCollection;
 
-        //factory pattern?
-        //if(dbType.equals("mongo")){
-        client = new MongoClient(hostname, port);
-        var database = client.getDatabase(db);
+    public EmployeeDAO(String propFileName) throws IOException {
+        FileReader fileReader = new FileReader("src/main/resources/"+propFileName);
+        Properties properties = new Properties();
+        properties.load(fileReader);
+
+        String hostName = properties.getProperty("hostname");
+        int port = Integer.parseInt(properties.getProperty("port"));
+        String db = properties.getProperty("db");
+
+        client = new MongoClient(hostName, port);
         mongoCollection = client.getDatabase(db).getCollection("employees");
-        System.out.println("Creating collection and db");
-        //}
     }
 
     public boolean createEmployee(Employee employee){

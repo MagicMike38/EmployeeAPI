@@ -1,4 +1,4 @@
-package com.mycompany.dao;
+package com.mycompany.model;
 
 public class Employee {
 

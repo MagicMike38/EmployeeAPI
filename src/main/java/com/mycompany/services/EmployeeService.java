@@ -1,25 +1,30 @@
 package com.mycompany.services;
 
-import com.mycompany.dao.Employee;
-import com.mycompany.dbaccess.EmployeeDBAccess;
+import com.mycompany.model.Employee;
+import com.mycompany.dao.EmployeeDAO;
+
+import java.io.IOException;
 
 public class EmployeeService {
-    private EmployeeDBAccess employeeDBAccess = new EmployeeDBAccess("db-connection.properties");
+    private final EmployeeDAO employeeDAO;
+    public EmployeeService() throws IOException {
+        employeeDAO = new EmployeeDAO("db-connection.properties");
+    }
 
     public boolean createEmployee(Employee employee){
-        return employeeDBAccess.createEmployee(employee);
+        return employeeDAO.createEmployee(employee);
     }
 
     public Employee getEmployee(int empId){
-        return employeeDBAccess.getEmployee(empId);
+        return employeeDAO.getEmployee(empId);
     }
 
     public boolean updateEmployee(Employee employee){
-        return employeeDBAccess.updateEmployee(employee);
+        return employeeDAO.updateEmployee(employee);
     }
 
     public boolean deleteEmployee(int empId){
-        return employeeDBAccess.deleteEmployee(empId);
+        return employeeDAO.deleteEmployee(empId);
     }
 
 }
