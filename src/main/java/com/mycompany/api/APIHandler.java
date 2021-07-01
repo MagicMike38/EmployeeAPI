@@ -124,14 +124,15 @@ public class APIHandler {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response consume(Employee employee) {
+    public Response consume() {
         ObjectNode json = mapper.createObjectNode();
         try{
-            employeeKafkaService.consume(employee);
+            employeeKafkaService.consume();
             json.put("Status", "Successful");
         }
         catch (Exception ex){
             System.out.println("Exception Occurred : "+ex.getMessage());
+            ex.printStackTrace();
             json.put("Status", "Failure");
             json.put("Reason", ex.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
