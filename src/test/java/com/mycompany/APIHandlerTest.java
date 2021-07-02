@@ -1,5 +1,7 @@
 package com.mycompany;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -7,95 +9,245 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.grizzly.http.server.HttpServer;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class APIHandlerTest {
 
     private static HttpServer server;
     private static WebTarget target;
 
+    private static MongoCollection mongoCollection;
+
+
     @BeforeAll
-    public static void beforeAllTests() {
+    public static void beforeAllTests() throws IOException {
         server = MainApp.startHttpServer();
         Client c = ClientBuilder.newClient();
         target = c.target(MainApp.BASE_URI.toString());
+
+        String propFileName = "application.properties";
+        InputStream inputStream = APIHandlerTest.class.getClassLoader().getResourceAsStream(propFileName);
+        Properties props = new Properties();
+        if (inputStream != null) {
+            props.load(inputStream);
+        } else {
+            throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+        }
+        MongoClient mongoClient = new MongoClient(props.getProperty("MONGO_HOST_NAME"),
+                Integer.parseInt(props.getProperty("MONGO_PORT")));
+        mongoCollection = mongoClient.getDatabase(props.getProperty("MONGO_DB")).getCollection("employees");
     }
 
     @AfterAll
     public static void afterAllTests() {
+        mongoCollection.drop();
         server.shutdownNow();
     }
 
+    @Order(1)
     @Test
-    @Disabled
-    public void testJson() throws JSONException {
-
-        String actual = target.path("api").request().get(String.class);
-        String expected = "{\"result\":\"Jersey JSON example using Jackson 2.x\"}";
-
-        JSONAssert.assertEquals(expected, actual, false);
-
-    }
-
-    @Test
-    @Disabled
-    public void testJsonName() throws JSONException {
-
-        String response = target.path("api/mike")
-                .request(MediaType.APPLICATION_JSON)
-                .get(String.class);
-
-        // convert json string to JSONObject
-        JSONObject actual = new JSONObject(response);
-
-        String expected = "{\"id\":1,\"name\":\"mike\",\"designation\":\"dev\"}";
-        JSONAssert.assertEquals(expected, actual, false);
-
-    }
-
-    @Test
-    @Disabled
-    public void testJsonAll() throws JSONException {
-
-        String response = target.path("api/all")
-                .request(MediaType.APPLICATION_JSON)
-                .get(String.class);
-
-        // convert json string to JSONArray
-        JSONArray actual = new JSONArray(response);
-
-        String expected = "[{\"id\":1,\"name\":\"mkyong\",\"designation\":\"dev\"}," +
-                "{\"id\":2,\"name\":\"zilap\",\"designation\":\"qa\"}]";
-        JSONAssert.assertEquals(expected, actual, false);
-
-    }
-
-    @Test
-    @Disabled
-    public void testJsonCreateOk() throws JSONException {
-
-        String json = "{\"id\":1,\"name\":\"mike\",\"designation\":\"dev\"}";
-
-        Response response = target.path("api/create")
+    public void testSuccessfulCreation() throws JSONException {
+        /**
+         * An employee is successfully created
+         */
+        String json = "{\"id\":1000,\"name\":\"mike\",\"designation\":\"dev\"}";
+        Response response = target.path("api/employee")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(json, MediaType.valueOf("application/json")));
 
         assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+    }
 
-        // read response body
-        String actual = response.readEntity(String.class);
-        String expected = "{\"status\":\"ok\"}";
-        JSONAssert.assertEquals(expected, actual, false);
+    @Test
+    public void testDuplicateKeyError() throws JSONException {
+        /**
+         * Employee id is unique and a Status code 500 should be returned a duplicate
+         * id is used to create.
+         */
+        String json = "{\"id\":1001,\"name\":\"mike\",\"designation\":\"dev\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(json, MediaType.valueOf("application/json")));
 
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(json, MediaType.valueOf("application/json")));
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Order(2)
+    @Test
+    public void testSuccessfulGetEmployee(){
+        /**
+         * Fetch employee details of a valid employee
+         */
+        Response response = target.path("api/employee/1000")
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testGetInvalidEmployee(){
+        /**
+         * Throw error with appropriate message if the employee id is invalid
+         */
+        Response response = target.path("api/employee/1")
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Order(3)
+    @Test
+    public void testSuccessfulEditEmployee(){
+        /**
+         * An employee is successfully edited
+         */
+        String json = "{\"id\":1000,\"name\":\"mike_edited\",\"designation\":\"dev_edited\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(json, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testEditInvalidEmployee(){
+        /**
+         * An employee is successfully edited
+         */
+        String json = "{\"id\":110,\"name\":\"mike_edited\",\"designation\":\"dev_edited\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(json, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Order(4)
+    @Test
+    public void testSuccessfulPatchEmployeeName(){
+        /**
+         * An employee is successfully patched with new name
+         */
+        String json = "{\"id\":1000,\"name\":\"mike_patched\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(json, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Order(5)
+    @Test
+    public void testSuccessfulPatchEmployeeDesignation(){
+        /**
+         * An employee is successfully patched with new designation
+         */
+        String json = "{\"id\":1000,\"designation\":\"dev_patched\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(json, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testInvalidPatchEmployeeDesignation(){
+        /**
+         * Invalid id when for patching employee designation
+         */
+        String json = "{\"id\":1,\"designation\":\"dev_patched\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(json, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testInvalidPatchEmployeeName(){
+        /**
+         * Invalid id when for patching employee name
+         */
+        String json = "{\"id\":1,\"designation\":\"dev_patched\"}";
+        Response response = target.path("api/employee")
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(json, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Order(6)
+    @Test
+    public void testSuccessfulDeleteEmployee(){
+        /**
+         * Successfully delete employee
+         */
+        Response response = target.path("api/employee/1000")
+                .request(MediaType.APPLICATION_JSON)
+                .delete();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testDeleteInvalidEmployee(){
+        /**
+         * Throw error with appropriate message if the employee id is invalid
+         */
+        Response response = target.path("api/employee/1")
+                .request(MediaType.APPLICATION_JSON)
+                .delete();
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Order(7)
+    @Test
+    public void testPublish(){
+        /**
+         * Successfully publish employee object to kafka
+         */
+        String json1 = "{\"id\":111,\"name\":\"publish_test1\",\"designation\":\"dev\"}";
+        String json2 = "{\"id\":112,\"name\":\"publish_test2\",\"designation\":\"dev\"}";
+        String json3 = "{\"id\":113,\"name\":\"publish_test3\",\"designation\":\"dev\"}";
+
+        Response response = target.path("api/publish")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(json1, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+
+        response = target.path("api/publish")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(json2, MediaType.valueOf("application/json")));
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+
+        response = target.path("api/publish")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(json3, MediaType.valueOf("application/json")));
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Order(8)
+    @Test
+    public void testConsume(){
+        Response response = target.path("api/consume")
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     }
 
     @Disabled

@@ -72,6 +72,12 @@ public class APIHandler {
         try{
             Employee employee = employeeService.getEmployee(employeeId);
 
+            if(employee == null){
+                json.put("Status", "Failure");
+                json.put("Reason", String.format("Employee with id %s doesn't exist", employeeId));
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            }
+
             json.put("id", employee.getId());
             json.put("name", employee.getName());
             json.put("designation", employee.getDesignation());
@@ -93,7 +99,34 @@ public class APIHandler {
     public Response update(Employee employee) {
         ObjectNode json = mapper.createObjectNode();
         try{
-            employeeService.updateEmployee(employee);
+            if(!employeeService.updateEmployee(employee)){
+                json.put("Status", "Failure");
+                json.put("Reason", "Invalid id");
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            }
+            json.put("Status", "Successful");
+        }
+        catch (Exception ex){
+            System.out.println("Exception Occurred : " + ex.getMessage());
+            json.put("Status", "Failure");
+            json.put("Reason", ex.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+        }
+        return Response.status(Response.Status.CREATED).entity(json).build();
+    }
+
+    @Path("/employee")
+    @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response patch(Employee employee) {
+        ObjectNode json = mapper.createObjectNode();
+        try{
+            if(!employeeService.updateEmployee(employee)){
+                json.put("Status", "Failure");
+                json.put("Reason", "Invalid id");
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            }
             json.put("Status", "Successful");
         }
         catch (Exception ex){
@@ -112,7 +145,11 @@ public class APIHandler {
     public Response delete(@PathParam("id") Integer empId) {
         ObjectNode json = mapper.createObjectNode();
         try{
-            employeeService.deleteEmployee(empId);
+            if(!employeeService.deleteEmployee(empId)){
+                json.put("Status", "Failure");
+                json.put("Reason", "Id invalid");
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            }
             json.put("Status", "Successful");
         }
         catch (Exception ex){
@@ -144,7 +181,7 @@ public class APIHandler {
     }
 
     @Path("/consume")
-    @POST
+    @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response consume() {
@@ -159,6 +196,6 @@ public class APIHandler {
             json.put("Reason", ex.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
         }
-        return Response.status(Response.Status.CREATED).entity(json).build();
+        return Response.status(Response.Status.OK).entity(json).build();
     }
 }

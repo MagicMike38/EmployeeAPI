@@ -4,6 +4,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import com.mycompany.model.Employee;
 import org.bson.Document;
 
@@ -31,8 +33,7 @@ public class EmployeeDAO {
         document.append("employeeName", employee.getName());
         document.append("employeeDesignation", employee.getDesignation());
 
-        client.getDatabase("details")
-                .getCollection("employees").insertOne(document);
+        mongoCollection.insertOne(document);
         return true;
     }
 
@@ -47,14 +48,26 @@ public class EmployeeDAO {
     }
 
     public boolean updateEmployee(Employee employee){
-        mongoCollection.updateOne(new Document("_id", employee.getId()),
-                new Document("$set", new Document("employeeDesignation", employee.getDesignation())
-                        .append("employeeName", employee.getName())));
-        return true;
+        Document document = new Document();
+
+        if(employee.getName() != null){
+            document.append("employeeName", employee.getName());
+        }
+        if(employee.getDesignation() != null){
+            document.append("employeeDesignation", employee.getDesignation());
+        }
+
+//        UpdateResult updateResult = mongoCollection.updateOne(new Document("_id", employee.getId()),
+//                new Document("$set", new Document("employeeDesignation", employee.getDesignation())
+//                        .append("employeeName", employee.getName())));
+        UpdateResult updateResult = mongoCollection.updateOne(new Document("_id", employee.getId()),
+                new Document("$set", document));
+
+        return updateResult.getModifiedCount() > 0;
     }
 
     public boolean deleteEmployee(int employeeId) {
-        mongoCollection.deleteOne(new Document("_id", employeeId));
-        return true;
+        DeleteResult deleteResult = mongoCollection.deleteOne(new Document("_id", employeeId));
+        return deleteResult.getDeletedCount() > 0;
     }
 }
