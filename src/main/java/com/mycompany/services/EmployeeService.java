@@ -4,11 +4,12 @@ import com.mycompany.model.Employee;
 import com.mycompany.dao.EmployeeDAO;
 
 import java.io.IOException;
+import java.util.Properties;
 
 public class EmployeeService implements AbstractEmployeeService{
     private final EmployeeDAO employeeDAO;
-    public EmployeeService() throws IOException {
-        employeeDAO = new EmployeeDAO();
+    public EmployeeService(Properties props) throws IOException {
+        employeeDAO = new EmployeeDAO(props);
     }
 
     public boolean createEmployee(Employee employee){

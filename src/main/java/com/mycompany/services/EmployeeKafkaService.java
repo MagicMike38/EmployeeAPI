@@ -24,12 +24,9 @@ public class EmployeeKafkaService implements AbstractKakfaService<Employee>{
     private final EmployeeService employeeService;
     private final Properties kafkaProps;
 
-    public EmployeeKafkaService() throws IOException {
-        FileReader configFile = new FileReader("src/main/resources/application.properties");
-
-        kafkaProps = new Properties();
-        kafkaProps.load(configFile);
-        employeeService = new EmployeeService();
+    public EmployeeKafkaService(Properties props) throws IOException {
+        this.kafkaProps = props;
+        employeeService = new EmployeeService(props);
     }
 
     public boolean publish(Employee employee) {

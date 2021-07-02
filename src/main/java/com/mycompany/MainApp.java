@@ -23,8 +23,6 @@ public class MainApp {
         config.register(APIHandler.class);
         config.register(CustomJacksonMapperProvider.class);
         config.register(CustomJsonExceptionMapper.class);
-        // JacksonFeature for JAXB/POJO, for pure JSON, no need this JacksonFeature
-        // config.register(JacksonFeature.class);
 
         return GrizzlyHttpServerFactory.createHttpServer(BASE_URI, config);
     }
@@ -32,7 +30,6 @@ public class MainApp {
     public static void main(String[] args) {
 
         try {
-
             final HttpServer server = startHttpServer();
 
             server.start();

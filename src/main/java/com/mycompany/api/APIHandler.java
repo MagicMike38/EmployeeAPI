@@ -11,20 +11,37 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 @Path("/api")
 public class APIHandler {
+
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private final AbstractEmployeeService employeeService;
     private final AbstractKakfaService<Employee> employeeKafkaService;
 
-    String configFileName = "application.properties";
+    String propFileName = "application.properties";
+    InputStream inputStream;
+    Properties props;
+
+    private void initialize() throws IOException {
+        inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+        props = new Properties();
+        if (inputStream != null) {
+            props.load(inputStream);
+        } else {
+            throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+        }
+    }
 
     public APIHandler() throws IOException {
-        employeeService = new EmployeeService();
-        employeeKafkaService = new EmployeeKafkaService();
+        initialize();
+        employeeService = new EmployeeService(props);
+        employeeKafkaService = new EmployeeKafkaService(props);
     }
 
     @Path("/employee")
