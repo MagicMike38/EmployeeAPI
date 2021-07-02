@@ -16,14 +16,14 @@ public class EmployeeDAO {
     private final MongoClient client;
     private final MongoCollection mongoCollection;
 
-    public EmployeeDAO(String propFileName) throws IOException {
-        FileReader fileReader = new FileReader("src/main/resources/"+propFileName);
+    public EmployeeDAO() throws IOException {
+        FileReader fileReader = new FileReader("src/main/resources/application.properties");
         Properties properties = new Properties();
         properties.load(fileReader);
 
-        String hostName = properties.getProperty("hostname");
-        int port = Integer.parseInt(properties.getProperty("port"));
-        String db = properties.getProperty("db");
+        String hostName = properties.getProperty("MONGO_HOST_NAME");
+        int port = Integer.parseInt(properties.getProperty("MONGO_PORT"));
+        String db = properties.getProperty("MONGO_DB");
 
         client = new MongoClient(hostName, port);
         mongoCollection = client.getDatabase(db).getCollection("employees");

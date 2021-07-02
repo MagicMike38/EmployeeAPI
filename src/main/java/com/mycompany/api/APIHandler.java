@@ -20,12 +20,11 @@ public class APIHandler {
     private final AbstractEmployeeService employeeService;
     private final AbstractKakfaService<Employee> employeeKafkaService;
 
-    String kakfaProdProp = "kafka-producer.properties";
-    String kakfaConsProp = "kafka-consumer.properties";
+    String configFileName = "application.properties";
 
     public APIHandler() throws IOException {
         employeeService = new EmployeeService();
-        employeeKafkaService = new EmployeeKafkaService(kakfaProdProp, kakfaConsProp);
+        employeeKafkaService = new EmployeeKafkaService();
     }
 
     @Path("/employee")
@@ -139,7 +138,6 @@ public class APIHandler {
         }
         catch (Exception ex){
             System.out.println("Exception Occurred : "+ex.getMessage());
-            ex.printStackTrace();
             json.put("Status", "Failure");
             json.put("Reason", ex.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();

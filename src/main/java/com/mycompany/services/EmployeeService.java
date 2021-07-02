@@ -8,7 +8,7 @@ import java.io.IOException;
 public class EmployeeService implements AbstractEmployeeService{
     private final EmployeeDAO employeeDAO;
     public EmployeeService() throws IOException {
-        employeeDAO = new EmployeeDAO("db-connection.properties");
+        employeeDAO = new EmployeeDAO();
     }
 
     public boolean createEmployee(Employee employee){

@@ -22,36 +22,30 @@ import java.util.Properties;
 public class EmployeeKafkaService implements AbstractKakfaService<Employee>{
 
     private final EmployeeService employeeService;
-    private final Properties producerProps;
-    private final Properties consumerProps;
+    private final Properties kafkaProps;
 
-    public EmployeeKafkaService(String producerConfig, String consumerConfig) throws IOException {
-        FileReader producerConfigFile = new FileReader("src/main/resources/"+producerConfig);
-        FileReader consumerConfigFile = new FileReader("src/main/resources/"+consumerConfig);
+    public EmployeeKafkaService() throws IOException {
+        FileReader configFile = new FileReader("src/main/resources/application.properties");
 
-        producerProps = new Properties();
-        consumerProps = new Properties();
-
-        producerProps.load(producerConfigFile);
-        consumerProps.load(consumerConfigFile);
-
+        kafkaProps = new Properties();
+        kafkaProps.load(configFile);
         employeeService = new EmployeeService();
     }
 
     public boolean publish(Employee employee) {
 
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, producerProps.getProperty("BOOTSTRAP_SERVERS_CONFIG"));
-        props.put(ProducerConfig.ACKS_CONFIG, producerProps.getProperty("ACKS_CONFIG"));
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, producerProps.get("BATCH_SIZE_CONFIG"));
-        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, producerProps.get("BUFFER_MEMORY_CONFIG"));
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProps.getProperty("PRODUCER_BOOTSTRAP_SERVERS_CONFIG"));
+        props.put(ProducerConfig.ACKS_CONFIG, kafkaProps.getProperty("PRODUCER_ACKS_CONFIG"));
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, kafkaProps.get("PRODUCER_BATCH_SIZE_CONFIG"));
+        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, kafkaProps.get("PRODUCER_BUFFER_MEMORY_CONFIG"));
 
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, EmployeeSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EmployeeSerializer.class.getName());
 
         Producer<Integer, Employee> producer = new KafkaProducer<>(props);
 
-        producer.send(new ProducerRecord<>(producerProps.getProperty("TOPIC_NAME"), employee.getId(), employee));
+        producer.send(new ProducerRecord<>(kafkaProps.getProperty("TOPIC_NAME"), employee.getId(), employee));
         producer.close();
 
         return true;
@@ -59,16 +53,16 @@ public class EmployeeKafkaService implements AbstractKakfaService<Employee>{
 
     public boolean consume() {
 
-        Properties properties = new Properties();
-        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, consumerProps.getProperty("BOOTSTRAP_SERVERS_CONFIG"));
-        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, consumerProps.getProperty("AUTO_OFFSET_RESET_CONFIG"));
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, consumerProps.getProperty("GROUP_ID_CONFIG"));
+        Properties props = new Properties();
+        props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProps.getProperty("CONSUMER_BOOTSTRAP_SERVERS_CONFIG"));
+        props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, kafkaProps.getProperty("CONSUMER_AUTO_OFFSET_RESET_CONFIG"));
+        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, kafkaProps.getProperty("CONSUMER_GROUP_ID_CONFIG"));
 
-        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, EmployeeDeserializer.class.getName());
+        props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, EmployeeDeserializer.class.getName());
 
-        KafkaConsumer<Integer, Employee> consumer = new KafkaConsumer<>(properties);
-        consumer.subscribe(Collections.singletonList(consumerProps.getProperty("TOPIC_NAME")));
+        KafkaConsumer<Integer, Employee> consumer = new KafkaConsumer<>(props);
+        consumer.subscribe(Collections.singletonList(kafkaProps.getProperty("TOPIC_NAME")));
 
         ConsumerRecords<Integer, Employee> records = consumer.poll(Duration.ofMillis(100));
         System.out.println("Records: "+records);
